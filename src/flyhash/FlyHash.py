@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 
@@ -18,7 +18,7 @@ class FlyHash:
         self,
         input_dim: int,
         hash_dim: int,
-        density: int | float = 0.1,
+        density: Union[int, float] = 0.1,
         sparsity: float = 0.05,
         quant_step: Optional[float] = None,
         dtype: type = np.int32,

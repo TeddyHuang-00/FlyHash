@@ -9,6 +9,8 @@ __license__ = "MIT"
 
 
 def test_flyhash():
+    np.random.seed(1234)
+
     normal_input_dim = 10
     normal_hash_dim = 100
     normal_int_density = 6

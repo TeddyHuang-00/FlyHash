@@ -1,7 +1,6 @@
 # Changelog
 
-## Version 0.1 (development)
+## Version 0.1.0
 
-- Feature A added
-- FIX: nasty bug #1729 fixed
-- add your changes here!
+- Add `FlyHash` class
+- Add tests for `FlyHash` class

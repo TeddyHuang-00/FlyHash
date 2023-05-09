@@ -8,7 +8,7 @@ __copyright__ = "TeddyHuang-00"
 __license__ = "MIT"
 
 
-def test_fib():
+def test_flyhash():
     normal_input_dim = 10
     normal_hash_dim = 100
     normal_int_density = 6

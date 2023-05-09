@@ -8,10 +8,30 @@ __license__ = "MIT"
 
 
 class FlyHash:
-    """
-    FlyHash is a python package for local sensitive hashing (LSH),
+    """FlyHash is a local sensitive hashing (LSH) algorithm,
     based on the paper "A neural algorithm for fundamental computing problems"
     by S. Dasgupta, C. F. Stevens, and S. Navlakha (2017).
+
+    FlyHash is a LSH algorithm that maps input data to a sparse hash embedding,
+    where the dimension of the hash embedding is much larger than the input,
+    and keeps the locality of the input data in the hash embedding.
+
+    FlyHash is designed to be cheap to compute, yet not ganranteeing
+    memory efficiency. It is suitable for hashing small to medium sized data
+    (d ~ 10-1000) to a large hash embedding (m ~ 100-10000).
+
+    Example
+    -------
+    Using a large hash_dim m=100 for a small input_dim d=10:
+
+    >>> import numpy as np
+    >>> from flyhash import FlyHash
+    >>> d = 10
+    >>> m = 100
+    >>> flyhash = FlyHash(d, m)
+    >>> data = np.random.randn(5, d)
+    >>> hashed_data = flyhash(data)
+
     """
 
     def __init__(
@@ -24,16 +44,49 @@ class FlyHash:
         dtype: type = np.int32,
         seed: Optional[int] = None,
     ):
-        """
-        Initialize FlyHash object.
+        """Initialize FlyHash object.
 
-        :param input_dim: input dimension
-        :param hash_dim: hash dimension
-        :param density: density of the projection matrix
-        :param sparsity: sparsity of the hash code
-        :param quant_step: quantization step
-        :param dtype: data type of the hash code
-        :param seed: random seed
+        Parameters
+        ----------
+        input_dim : int
+            Input dimension of the data to be hashed.
+
+            Note that FlyHash can only hash data with a fixed input dimensions.
+        hash_dim : int
+            Output dimension of the hash embeddings.
+        density : Union[int, float], optional
+            The connection density from input to output,
+            either a float between 0 and 1, or an integer greater than 0,
+            by default 0.1.
+
+            If `density` is a float, each column of the projection matrix
+            has non-zero entries with probability `density`.
+
+            If `density` is an integer, each column of the projection matrix
+            has exactly `density` non-zero entries.
+        sparsity : float, optional
+            The sparsity level of hash embeddings, must be a float
+            between 0 and 1, by default 0.05.
+
+            The sparsity level is defined as the fraction of non-zero
+            entries in the hash embeddings. The precise number of non-zero
+            entries is determined by `hash_dim` and `sparsity` as
+            `round(hash_dim * sparsity)`.
+        quant_step : Optional[float], optional
+            The quantization step size to use, either a float representing
+            the step size, or `None` for all-or-none clipping, by default `None`.
+
+            If `quant_step` is a float, the hash embeddings will be quantized
+            to an integer multiple of `quant_step`. To avoid information loss,
+            the ceiling of the quantized value is used, i.e. the quantized value
+            is always greater than 0 iff the original value is greater than 0.
+        dtype : type, optional
+            Data type of the output hash embeddings, by default np.int32.
+
+            Note that the data type must be one of the integer types.
+        seed : Optional[int], optional
+            The random seed to use when generating the projection matrix,
+            by default `None`.
         """
         self.input_dim = input_dim
         assert self.input_dim > 0, "input_dim must be positive"
@@ -64,11 +117,22 @@ class FlyHash:
         self.rng = np.random.default_rng(self.seed)
 
         self.projection_matrix = np.zeros((self.hash_dim, self.input_dim), dtype=bool)
-        self.__construct_projection_matrix()
+        self._construct_projection_matrix()
 
     def __call__(self, input_data: np.ndarray) -> np.ndarray:
-        """
-        Hash input_data to hash_dim vector(s).
+        """Hash input_data to hash_dim vector(s).
+
+        Parameters
+        ----------
+        input_data : np.ndarray
+            Input data to be hashed, must be 1D (input_dim,)
+            or 2D (batch_size, input_dim).
+
+        Returns
+        -------
+        np.ndarray
+            Hashed data, 1D (hash_dim,) or 2D (batch_size, hash_dim)
+            according to the shape of input_data.
         """
         assert 0 < input_data.ndim <= 2, "input_data must be 1D or 2D"
         if input_data.ndim == 1:
@@ -78,11 +142,23 @@ class FlyHash:
             f"input dimension incompatible with {self.input_dim}"
         )
         projected_data = input_data @ self.projection_matrix.T
-        return np.apply_along_axis(self.__winner_take_all, 1, projected_data).squeeze()
+        return np.apply_along_axis(self._winner_take_all, 1, projected_data).squeeze()
 
-    def __construct_projection_matrix(self):
-        """
-        Construct projection matrix from input_dim to hash_dim.
+    def _construct_projection_matrix(self):
+        """Construct projection matrix from input_dim to hash_dim.
+
+        Notes
+        -----
+            The projection matrix `W` is a binary matrix of shape (hash_dim, input_dim).
+
+            This method constructs `W` by sampling from a binomial distribution
+            with parameters `n=input_dim` and `p=density` if `density` is a float,
+            or by sampling from a uniform distribution over `input_dim`
+            if `density` is an integer.
+
+            This method is called by the constructor. It SHOULD NOT be called again
+            later to avoid overwriting the projection matrix. Doing so will make the
+            hash embeddings non-deterministic.
         """
         if isinstance(self.density, int):
             assert self.density <= self.hash_dim, "density must be less than hash_dim"
@@ -104,11 +180,22 @@ class FlyHash:
                 p=[1 - self.density, self.density],
             )
 
-    def __winner_take_all(self, input_vector: np.ndarray) -> np.ndarray:
-        """
-        Winner-take-all operation.
+    def _winner_take_all(self, input_vector: np.ndarray) -> np.ndarray:
+        """Winner-take-all operation.
 
-        This also includes quantization step to reduce the number of unique values.
+        This also includes quantization step using `quant_step` if specified,
+        to reduce the number of unique values.
+
+        Parameters
+        ----------
+        input_vector : np.ndarray
+            1D input vector to be winner-take-all-ed. The number of winners
+            is pre-determined by `num_winners`.
+
+        Returns
+        -------
+        np.ndarray
+            1D winner-take-all-ed vector of given integer type `dtype`.
         """
         result = np.zeros_like(input_vector, dtype=self.dtype)
         indices = np.argpartition(input_vector, -self.num_winners)[-self.num_winners :]

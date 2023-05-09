@@ -18,7 +18,6 @@
 
 A longer description of your project goes here...
 
-
 <!-- pyscaffold-notes -->
 
 ## Note

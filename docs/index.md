@@ -2,7 +2,6 @@
 
 A novel hashing algorithm based on "A neural algorithm for a fundamental computing problem" by S. Dasgupta, C. F. Stevens, and S. Navlakha (2017)
 
-
 ## Note
 
 > This is the main page of your project's [Sphinx] documentation. It is
@@ -12,7 +11,6 @@ A novel hashing algorithm based on "A neural algorithm for a fundamental computi
 >
 > Please check [Sphinx] and [MyST] for more information
 > about how to document your project and how to configure your preferences.
-
 
 ## Contents
 
@@ -29,9 +27,9 @@ Module Reference <api/modules>
 
 ## Indices and tables
 
-* {ref}`genindex`
-* {ref}`modindex`
-* {ref}`search`
+- {ref}`genindex`
+- {ref}`modindex`
+- {ref}`search`
 
 [Sphinx]: http://www.sphinx-doc.org/
 [Markdown]: https://daringfireball.net/projects/markdown/

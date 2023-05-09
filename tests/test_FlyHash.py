@@ -13,7 +13,7 @@ def test_flyhash():
     normal_hash_dim = 100
     normal_int_density = 6
     normal_float_density = 0.05
-    normal_sparsity = 0.075
+    normal_sparsity = 0.1
     normal_quant_step = 0.1
     normal_dtype = np.int16
     normal_seed = 0
@@ -118,16 +118,23 @@ def test_flyhash():
             with pytest.raises(AssertionError):
                 hasher(input_data)
 
-    assert fixed_hasher(normal_matrix_data).shape == (10, normal_hash_dim)
-    assert fixed_hasher(normal_vector_data).shape == (normal_hash_dim,)
-    assert random_hasher(normal_matrix_data).shape == (10, normal_hash_dim)
-    assert random_hasher(normal_vector_data).shape == (normal_hash_dim,)
-    assert fixed_hasher(normal_matrix_data).dtype == normal_dtype
+    fixed_matrix = fixed_hasher(normal_matrix_data)
+    fixed_vector = fixed_hasher(normal_vector_data)
+    random_matrix = random_hasher(normal_matrix_data)
+    random_vector = random_hasher(normal_vector_data)
+
+    assert fixed_matrix.shape == (10, normal_hash_dim)
+    assert fixed_vector.shape == (normal_hash_dim,)
+    assert fixed_matrix.dtype == normal_dtype
+    assert random_matrix.shape == (10, normal_hash_dim)
+    assert random_vector.shape == (normal_hash_dim,)
+    assert random_matrix.dtype == normal_dtype
 
     # Test random seed
     hasher_1 = FlyHash(normal_input_dim, normal_hash_dim, seed=normal_seed)
     hasher_2 = FlyHash(normal_input_dim, normal_hash_dim, seed=normal_seed)
     assert np.all(hasher_1(normal_matrix_data) == hasher_2(normal_matrix_data))
+    assert np.all(hasher_1.projection_matrix == hasher_2.projection_matrix)
 
     # Test clipping
     binary_clip_hasher = FlyHash(
@@ -138,14 +145,15 @@ def test_flyhash():
         dtype=normal_dtype,
         seed=normal_seed,
     )
-    assert binary_clip_hasher(normal_matrix_data).max() == 1
-    assert binary_clip_hasher(normal_matrix_data).min() == 0
-    assert np.allclose(
-        (binary_clip_hasher(normal_vector_data) > 0).sum() / normal_hash_dim,
-        normal_sparsity,
-        atol=1e-2,
-    )
-    crazy_clip_hasher = FlyHash(
+    binary_matrix = binary_clip_hasher(normal_matrix_data)
+    binary_vector = binary_clip_hasher(normal_vector_data)
+
+    assert binary_matrix.max() == 1
+    assert binary_matrix.min() == 0
+    count = (binary_vector > 0).sum()
+    assert np.allclose(count / normal_hash_dim, normal_sparsity, atol=1e-2)
+
+    overflow_clip_hasher = FlyHash(
         normal_input_dim,
         normal_hash_dim,
         sparsity=normal_sparsity,
@@ -153,10 +161,9 @@ def test_flyhash():
         dtype=normal_dtype,
         seed=normal_seed,
     )
-    assert crazy_clip_hasher(normal_matrix_data).max() == np.iinfo(normal_dtype).max
-    assert crazy_clip_hasher(normal_matrix_data).min() == 0
-    assert np.allclose(
-        (crazy_clip_hasher(normal_vector_data) > 0).sum() / normal_hash_dim,
-        normal_sparsity,
-        atol=1e-2,
-    )
+    overflow_matrix = overflow_clip_hasher(normal_matrix_data)
+    overflow_vector = overflow_clip_hasher(normal_vector_data)
+    assert overflow_matrix.max() == np.iinfo(normal_dtype).max
+    assert overflow_matrix.min() == 0
+    count = (overflow_vector > 0).sum()
+    assert np.allclose(count / normal_hash_dim, normal_sparsity, atol=1e-2)

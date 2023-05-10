@@ -209,3 +209,22 @@ class FlyHash:
                 0, np.iinfo(self.dtype).max
             )
         return result
+
+    def __repr__(self):
+        return (
+            f"HashEmbedding(input_dim={self.input_dim}, hash_dim={self.hash_dim}, "
+            f"density={self.density}, sparsity={self.sparsity}, "
+            f"quant_step={self.quant_step}, dtype={self.dtype}, seed={self.seed})"
+        )
+
+    def reset(self, seed: Optional[int] = None):
+        """Reset the random seed if provided and re-construct the projection matrix.
+
+        Parameters
+        ----------
+        seed : Optional[int], optional
+            The new seed to be used, omitted when set to `None`, by default `None`.
+        """
+        if seed is not None:
+            self.rng = np.random.default_rng(seed)
+        self._construct_projection_matrix()

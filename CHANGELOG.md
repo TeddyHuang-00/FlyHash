@@ -1,4 +1,8 @@
-## Unreleased
+## v0.3.0 (2023-05-10)
+
+### Feat
+
+- :sparkles: Add reset method for FlyHash
 
 ### Fix
 

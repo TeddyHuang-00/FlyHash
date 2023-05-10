@@ -1,12 +1,21 @@
-# Changelog
+## Unreleased
 
-## Version 0.2.0
+### Fix
 
-- Rename `FlyHash.__construct_projection_matrix` to `FlyHash._construct_projection_matrix`
-- Rename `FlyHash.__winner_take_all` to `FlyHash._winner_take_all`
-- Update documentation
+- :white_check_mark: Set random seed for non-deterministic tests
 
-## Version 0.1.0
+## v0.2.0 (2023-05-09)
 
-- Add `FlyHash` class
-- Add tests for `FlyHash` class
+## v0.1.0 (2023-05-09)
+
+### Feat
+
+- :sparkles: Add FlyHash class
+
+### Fix
+
+- :bug: Fix compatibility with py3.7
+
+### Refactor
+
+- :recycle: Rename test function

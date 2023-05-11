@@ -1,4 +1,4 @@
-[![ReadTheDocs](https://readthedocs.org/projects/FlyHash/badge/?version=latest)](https://FlyHash.readthedocs.io/en/latest/)
+[![Documentation Status](https://readthedocs.org/projects/flyhash/badge/?version=latest)](https://flyhash.readthedocs.io/en/latest/?badge=latest)
 [![Coveralls](https://img.shields.io/coveralls/github/TeddyHuang-00/FlyHash/main.svg)](https://coveralls.io/r/TeddyHuang-00/FlyHash)
 [![PyPI-Server](https://img.shields.io/pypi/v/FlyHash.svg)](https://pypi.org/project/FlyHash/)
 [![Monthly Downloads](https://pepy.tech/badge/FlyHash/month)](https://pepy.tech/project/FlyHash)

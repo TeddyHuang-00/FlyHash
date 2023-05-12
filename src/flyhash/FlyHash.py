@@ -1,6 +1,7 @@
 from typing import Optional, Union
 
 import numpy as np
+from scipy import sparse
 
 __author__ = "TeddyHuang-00"
 __copyright__ = "TeddyHuang-00"
@@ -116,7 +117,6 @@ class FlyHash:
 
         self.rng = np.random.default_rng(self.seed)
 
-        self.projection_matrix = np.zeros((self.hash_dim, self.input_dim), dtype=bool)
         self._construct_projection_matrix()
 
     def __call__(self, input_data: np.ndarray) -> np.ndarray:
@@ -165,20 +165,31 @@ class FlyHash:
             # Create fixed number of connections when density is an integer.
             # Each column of the projection matrix has exactly density non-zero entries.
             # The non-zero entries are all 1.
-            for idx in range(self.hash_dim):
-                self.projection_matrix[
-                    idx, self.rng.choice(self.input_dim, self.density, replace=False)
-                ] = True
+            col = np.concatenate(
+                [
+                    self.rng.choice(self.input_dim, self.density, replace=False)
+                    for _ in range(self.hash_dim)
+                ]
+            )
+            row = np.repeat(np.arange(self.hash_dim), self.density)
+            self.projection_matrix = sparse.csr_matrix(
+                (np.ones_like(row, dtype=bool), (row, col)),
+                shape=(self.hash_dim, self.input_dim),
+            )
         else:
             # Create variable number of connections when density is a float.
             # Each column of the projection matrix has non-zero entries
             # with probability density.
             # The non-zero entries are all 1.
-            self.projection_matrix = self.rng.choice(
-                [False, True],
-                size=(self.hash_dim, self.input_dim),
-                p=[1 - self.density, self.density],
-            )
+            self.projection_matrix: sparse.csr_matrix = sparse.random(
+                self.hash_dim,
+                self.input_dim,
+                self.density,
+                format="csr",
+                random_state=self.rng,
+                dtype=bool,
+                data_rvs=lambda n: np.ones(n, dtype=bool),
+            ).tocsr()
 
     def _winner_take_all(self, input_vector: np.ndarray) -> np.ndarray:
         """Winner-take-all operation.

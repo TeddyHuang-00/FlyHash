@@ -4,5 +4,6 @@
 # sphinx_rtd_theme
 myst-parser[linkify]
 numpy>=1.19.5,<2.0.0
+scipy>=1.6.0,<2.0.0
 sphinx>=3.2.1
 sphinx_rtd_theme

@@ -4,6 +4,10 @@
 
 - The projection matrix attribute of FlyHash now is an instance of scipy.sparse.csr_matrix, this might break direct operations on it
 
+### Fix
+
+- :arrow_down: Downgrade scipy requirement for Python3.7
+
 ### Perf
 
 - :zap: Use scipy.sparse for sparse matrix multiplication

@@ -136,11 +136,17 @@ def test_flyhash():
     hasher_1 = FlyHash(normal_input_dim, normal_hash_dim, seed=normal_seed)
     hasher_2 = FlyHash(normal_input_dim, normal_hash_dim, seed=normal_seed)
     assert np.all(hasher_1(normal_matrix_data) == hasher_2(normal_matrix_data))
-    assert not np.any((hasher_1.projection_matrix != hasher_2.projection_matrix).data)  # type: ignore
+    assert not np.any(
+        (hasher_1.projection_matrix != hasher_2.projection_matrix).data  # type: ignore
+    )
     hasher_2.reset()
-    assert np.any((hasher_1.projection_matrix != hasher_2.projection_matrix).data)  # type: ignore
+    assert np.any(
+        (hasher_1.projection_matrix != hasher_2.projection_matrix).data  # type: ignore
+    )
     hasher_2.reset(normal_seed + 1)
-    assert np.any((hasher_1.projection_matrix != hasher_2.projection_matrix).data)  # type: ignore
+    assert np.any(
+        (hasher_1.projection_matrix != hasher_2.projection_matrix).data  # type: ignore
+    )
 
     # Test clipping
     binary_clip_hasher = FlyHash(
